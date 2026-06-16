@@ -13,7 +13,9 @@ wasteiq/
 ├── backend/          ← Django REST API (Python)
 ├── frontend/         ← React.js Dashboard (Vite + Chart.js + Leaflet)
 ├── mobile/           ← Flutter Driver App
-└── README.md
+├── README.md
+├── SYSTEM_BREAKDOWN.md
+└── CLAUDE.md
 ```
 
 ---
@@ -22,15 +24,20 @@ wasteiq/
 
 | Phase | Component | Status |
 |-------|-----------|--------|
-| Phase 1 | Django Backend — Models | ✅ Done |
+| Phase 1 | Django Backend — Models (9 tables) | ✅ Done |
 | Phase 1 | Django Backend — Prediction Engine | ✅ Done |
-| Phase 1 | Django Backend — 20 API Endpoints | ✅ Done |
+| Phase 1 | Django Backend — 21 API Endpoints | ✅ Done |
+| Phase 1 | Django Admin Panel (all models registered) | ✅ Done |
 | Phase 1 | GPS Simulator (fake moving trucks) | ✅ Done |
 | Phase 1 | Weather — Open-Meteo free API | ✅ Done |
 | Phase 1 | Seed Data (30 zones, 90d TPS, events) | ✅ Done |
 | Phase 1 | Indonesia Public Holidays (Nager.Date API) | ✅ Done |
-| Phase 2 | React Dashboard — 9 pages | ✅ Done |
-| Phase 3 | Flutter Mobile App — 4 screens | ✅ Done |
+| Phase 1 | Dual Database (SQLite default + PostgreSQL) | ✅ Done |
+| Phase 1 | Swagger UI (local assets, no CDN) | ✅ Done |
+| Phase 2 | React Dashboard — 10 pages | ✅ Done |
+| Phase 3 | Flutter Mobile App — 5 screens | ✅ Done |
+| Phase 3 | iOS ATS config (HTTP allowed) | ✅ Done |
+| Phase 3 | Smart Route Assignment System | ✅ Done |
 | Phase 4 | Polish & demo prep | ✅ Done |
 
 ---
@@ -49,28 +56,46 @@ python3 manage.py migrate
 # Seed all data
 python3 manage.py seed_data
 
-# Start server
-python3 manage.py runserver
-# → http://localhost:8000
+# Start server (accessible from phone on same WiFi)
+python3 manage.py runserver 0.0.0.0:8000
+# → http://localhost:8000/api/
+# → http://localhost:8000/api/docs/   (Swagger UI)
+# → http://localhost:8000/admin/      (Admin panel)
 ```
+
+> **PostgreSQL mode:** prefix commands with `USE_POSTGRES=true` to use PostgreSQL instead of SQLite.
 
 > **Mac note:** prefix commands with `PYTHONPATH=/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages` if Django is not found.
 
 ---
 
-## API Documentation (Swagger UI)
+## Django Admin Panel
 
-Once the backend is running, open:
+Full admin panel available at `http://localhost:8000/admin/`
 
-| URL | Description |
-|-----|-------------|
-| `http://localhost:8000/api/docs/` | **Swagger UI** — interactive API explorer |
-| `http://localhost:8000/api/redoc/` | ReDoc — clean reference docs |
-| `http://localhost:8000/api/schema/` | Raw OpenAPI 3 schema (JSON) |
+**Default superuser credentials:**
+```
+Username: admin
+Password: admin1234
+```
+
+All 9 models are registered: Zones, Drivers, FleetVehicles, EventPermits, TPSRecords, Predictions, RouteAssignments, RouteZoneStops, FieldReports.
 
 ---
 
-## API Endpoints (all working)
+## API Documentation
+
+Once the backend is running:
+
+| URL | Description |
+|-----|-------------|
+| `http://localhost:8000/api/docs/` | **Swagger UI** — interactive API explorer (served locally) |
+| `http://localhost:8000/api/redoc/` | ReDoc — clean reference docs |
+| `http://localhost:8000/api/schema/` | Raw OpenAPI 3 schema |
+
+---
+
+## API Endpoints (21 total)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -78,6 +103,7 @@ Once the backend is running, open:
 | GET | `/api/zones/<id>/` | Zone detail + 24h predictions |
 | GET | `/api/events/` | Crowd permit events |
 | POST | `/api/events/` | Register event (auto-triggers prediction) |
+| GET | `/api/events/calendar/` | Events grouped by date with waste totals |
 | GET | `/api/predictions/` | All predictions (filter: zone, date, risk) |
 | POST | `/api/predictions/generate/` | Run prediction for a zone |
 | GET | `/api/predictions/heatmap/` | All zones with risk + color for map |
@@ -95,12 +121,26 @@ Once the backend is running, open:
 | GET | `/api/routes/my/?driver_id=<id>` | Driver's current active assignment |
 | POST | `/api/routes/request/` | Auto-assign nearest eligible zone to driver |
 | PUT | `/api/routes/<id>/complete/` | Complete route → triggers zone cooldown |
+| POST | `/api/data/import/` | Import TPS records from CSV file |
+
+---
+
+## Database
+
+WasteIQ supports two databases. SQLite is the default (zero setup).
+
+| Mode | Command | Use case |
+|------|---------|----------|
+| **SQLite** (default) | `python3 manage.py runserver` | Local dev, sharing with friends, demo |
+| **PostgreSQL** | `USE_POSTGRES=true python3 manage.py runserver` | Production, full setup |
+
+SQLite database file is excluded from git — run `migrate` + `seed_data` to create it fresh.
 
 ---
 
 ## Smart Route Assignment System
 
-The system automatically assigns cleaning routes to drivers based on zone risk and vehicle proximity.
+Automatically assigns cleaning routes to drivers based on zone risk and vehicle proximity.
 
 **Assignment rules:**
 1. Driver presses **"Get Route"** in the mobile app
@@ -109,6 +149,7 @@ The system automatically assigns cleaning routes to drivers based on zone risk a
 4. Assigns the best zone exclusively — no other driver will get the same zone while it's active
 
 **Zone cooldown after completion:**
+
 | Risk Level | Cooldown |
 |-----------|---------|
 | Critical | 4 hours |
@@ -116,7 +157,10 @@ The system automatically assigns cleaning routes to drivers based on zone risk a
 | Medium | 6 hours |
 | Low | 6 hours |
 
-**10 real drivers — 2 per Jakarta municipality:**
+---
+
+## Drivers (10 demo accounts)
+
 | Employee ID | Name | Area |
 |------------|------|------|
 | DLH-2001 | Budi Santoso | Central Jakarta |
@@ -132,14 +176,54 @@ The system automatically assigns cleaning routes to drivers based on zone risk a
 
 ---
 
+## Quick Start — Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+# → http://localhost:5173
+```
+
+---
+
+## Quick Start — Flutter Mobile App
+
+```bash
+cd mobile
+flutter pub get
+flutter run
+```
+
+**Before running**, set the correct `baseUrl` in `lib/services/api_service.dart`:
+
+| Platform | baseUrl |
+|----------|---------|
+| iOS Simulator | `http://127.0.0.1:8000/api` |
+| Android Emulator | `http://10.0.2.2:8000/api` |
+| Real device (same WiFi) | `http://<your-mac-ip>:8000/api` |
+
+> Get your Mac's WiFi IP: `ipconfig getifaddr en0`
+
+**Login:** Use employee IDs DLH-2001 through DLH-2010
+
+**Screens:**
+- **Login** — employee ID auth against Django API
+- **Route List** — priority-sorted zones by risk level, Get Route / Complete Route
+- **Map** — OpenStreetMap with risk-colored zone circles, your location marker
+- **Report** — field report submission with GPS capture
+- **History** — past field reports submitted by this driver
+
+---
+
 ## Data Strategy
 
 | Data | Source | Type |
 |------|--------|------|
 | TPS disposal history (90 days) | Seed script with realistic noise | Synthetic |
-| Indonesia public holidays | [Nager.Date](https://date.nager.at) free API | Real |
+| Indonesia public holidays | Nager.Date (free, no key) | Real |
 | Crowd permit events (10 demo) | Seed script | Synthetic |
-| Weather (current + forecast) | [Open-Meteo](https://open-meteo.com) free API | Real |
+| Weather (current + forecast) | Open-Meteo (free, no key) | Real |
 | Fleet GPS positions | Moving simulator (`gps_simulator.py`) | Simulated |
 | 30 Jakarta zone coordinates | Real zone coordinates | Real |
 
@@ -162,39 +246,16 @@ Day multipliers: weekday=1.0, weekend=1.25, holiday=1.45
 
 ---
 
-## Quick Start — Flutter Mobile App
-
-```bash
-cd mobile
-
-# Install dependencies
-flutter pub get
-
-# Run on Android emulator (backend must be running)
-flutter run
-
-# The app uses http://10.0.2.2:8000/api (Android emulator host)
-# Change baseUrl in lib/services/api_service.dart for real device
-```
-
-**Login:** Use employee IDs DLH-2001 through DLH-2015
-
-**Screens:**
-- **Login** — employee ID auth against Django API
-- **Route List** — priority-sorted zones by risk level, pull-to-refresh
-- **Map** — OpenStreetMap with risk-colored zone circles, your location marker
-- **Report** — field report submission with GPS capture
-
----
-
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
 | Backend API | Django 5.x + Django REST Framework |
+| API Docs | drf-spectacular + drf-spectacular-sidecar |
 | Web Dashboard | React.js + Vite + Chart.js + Leaflet.js |
 | Mobile App | Flutter (Dart) + flutter_map |
-| Database | PostgreSQL 18 (via Postgres.app) |
+| Database | SQLite (default) / PostgreSQL (optional) |
 | Weather API | Open-Meteo (free, no key) |
 | Holidays API | Nager.Date (free, no key) |
-| Maps | OpenStreetMap via Leaflet.js |
+| Maps | OpenStreetMap via Leaflet.js / flutter_map |
+| Road Routing | OSRM (free, no key) |
