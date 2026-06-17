@@ -6,3 +6,7 @@ numpy==1.26
 requests==2.32
 drf-spectacular==0.27.2
 drf-spectacular-sidecar
+gunicorn==21.2.0
+whitenoise==6.7.0
+dj-database-url==2.2.0
+psycopg2-binary==2.9.9
