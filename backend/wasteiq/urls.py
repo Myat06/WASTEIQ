@@ -2,9 +2,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.shortcuts import redirect
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 urlpatterns = [
+    path('', lambda request: redirect('swagger-ui', permanent=False)),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
