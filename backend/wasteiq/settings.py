@@ -104,6 +104,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+# Tell Django it's behind Railway's HTTPS reverse proxy
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 CSRF_TRUSTED_ORIGINS = [
     'https://wasteiq-production.up.railway.app',
     'https://wasteiq.vercel.app',
