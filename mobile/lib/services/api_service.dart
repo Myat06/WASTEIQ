@@ -2,9 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 
-const String baseUrl = 'http://127.0.0.1:8000/api';         // iOS simulator
-// const String baseUrl = 'http://10.0.2.2:8000/api';     // Android emulator
-// const String baseUrl = 'http://10.9.10.55:8000/api';   // Real device (Mac WiFi IP)
+const String baseUrl = 'https://wasteiq-production.up.railway.app/api'; // Production
 
 const _timeout = Duration(seconds: 10);
 
