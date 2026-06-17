@@ -118,6 +118,15 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {'console': {'class': 'logging.StreamHandler'}},
+    'loggers': {
+        'drf_spectacular': {'handlers': ['console'], 'level': 'ERROR', 'propagate': False},
+    },
+}
+
 SPECTACULAR_SETTINGS = {
     'TITLE': 'WasteIQ API',
     'DESCRIPTION': 'AI-powered waste volume prediction platform for DLH DKI Jakarta',
