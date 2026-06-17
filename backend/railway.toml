@@ -5,5 +5,5 @@ buildCommand = "pip install -r requirements.txt && python manage.py collectstati
 [deploy]
 startCommand = "python manage.py migrate && python manage.py ensure_admin && gunicorn wasteiq.wsgi --bind 0.0.0.0:$PORT --log-file -"
 healthcheckPath = "/api/zones/"
-healthcheckTimeout = 120
+healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
