@@ -3,7 +3,7 @@ builder = "NIXPACKS"
 buildCommand = "pip install -r requirements.txt && python manage.py collectstatic --noinput"
 
 [deploy]
-startCommand = "python manage.py migrate && python manage.py shell -c \"from django.contrib.auth.models import User; User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', 'admin@wasteiq.com', 'admin1234')\" && gunicorn wasteiq.wsgi --bind 0.0.0.0:$PORT --log-file -"
+startCommand = "python manage.py migrate && python manage.py ensure_admin && gunicorn wasteiq.wsgi --bind 0.0.0.0:$PORT --log-file -"
 healthcheckPath = "/api/zones/"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"
