@@ -104,6 +104,13 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://wasteiq-production.up.railway.app',
+    'https://wasteiq.vercel.app',
+    'http://localhost:8000',
+    'http://localhost:5173',
+]
+
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
